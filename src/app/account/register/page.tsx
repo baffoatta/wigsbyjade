@@ -1,7 +1,6 @@
 "use client";
 
-import { REGISTER_USER_MUTATION } from "@/graphql/queries";
-import { useMutation } from "@apollo/client/react";
+import { useRegisterUser } from "@/hooks/useWooCommerce";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -13,24 +12,22 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const router = useRouter();
+  const [register, { loading }] = useRegisterUser();
 
-  const [register, { loading }] = useMutation(REGISTER_USER_MUTATION, {
-    onCompleted: () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+    
+    try {
+      await register({ username, email, password });
       setSuccess("Registration successful! You can now log in.");
       setTimeout(() => {
         router.push("/account/login");
       }, 2000);
-    },
-    onError: (error) => {
-      setError(error.message);
-    },
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
-    register({ variables: { username, email, password } });
+    } catch {
+      setError("Registration failed. Please try again.");
+    }
   };
 
   return (

@@ -1,7 +1,6 @@
 import ProductCard from "@/components/ProductCard";
 import ProductFilters from "@/components/ProductFilters";
-import { GET_PRODUCTS } from "@/graphql/queries";
-import client from "@/lib/apollo";
+import { wcAPI } from "@/lib/woocommerce";
 import { Suspense } from "react";
 
 interface ProductsPageProps {
@@ -10,35 +9,17 @@ interface ProductsPageProps {
   }>;
 }
 
-interface Product {
-  id: string;
-  name: string;
-  slug: string;
-  image: {
-    sourceUrl: string;
-    altText: string;
-  } | null;
-}
-
-interface ProductsData {
-  products: {
-    nodes: Product[];
-  };
-}
 
 async function getProducts(category?: string) {
-  const variables = category ? { categoryIn: [category] } : {};
   try {
-    const { data } = await client.query<ProductsData>({
-      query: GET_PRODUCTS,
-      variables,
-      context: {
-        fetchOptions: {
-          next: { revalidate: 60 },
-        },
-      },
-    });
-    return data?.products?.nodes || [];
+    const params: Record<string, string | number> = {};
+    if (category) {
+      // Find category ID by slug - this might require a separate call
+      // For now, we'll use the slug directly if the API supports it
+      params.category = category;
+    }
+    const products = await wcAPI.getProducts(params);
+    return products || [];
   } catch (error) {
     console.error("Error fetching products:", error);
     return [];

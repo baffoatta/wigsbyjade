@@ -1,7 +1,6 @@
 import PriceDisplay from "@/components/PriceDisplay";
 import ProductActions from "@/components/ProductActions";
-import { GET_PRODUCT_BY_SLUG } from "@/graphql/queries";
-import client from "@/lib/apollo";
+import { wcAPI } from "@/lib/woocommerce";
 import Image from "next/image";
 
 interface ProductPageProps {
@@ -10,34 +9,11 @@ interface ProductPageProps {
   }>;
 }
 
-interface Product {
-  id: string;
-  name: string;
-  slug: string;
-  description: string;
-  price: string;
-  image: {
-    sourceUrl: string;
-    altText: string;
-  } | null;
-}
-
-interface ProductData {
-  product: Product;
-}
 
 async function getProduct(slug: string) {
   try {
-    const { data } = await client.query<ProductData>({
-      query: GET_PRODUCT_BY_SLUG,
-      variables: { slug },
-      context: {
-        fetchOptions: {
-          next: { revalidate: 60 },
-        },
-      },
-    });
-    return data?.product || null;
+    const product = await wcAPI.getProductBySlug(slug);
+    return product;
   } catch (error) {
     console.error("Error fetching product:", error);
     return null;
@@ -55,11 +31,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
   }
 
   const productForCart = {
-    id: product.id,
+    id: product.id.toString(),
     name: product.name,
     price: product.price,
     slug: product.slug,
-    image: product.image?.sourceUrl || null,
+    image: product.images?.[0]?.src || null,
   };
 
   return (
@@ -67,8 +43,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="relative aspect-square">
           <Image
-            src={product.image?.sourceUrl || "/placeholder.svg"}
-            alt={product.image?.altText || product.name}
+            src={product.images?.[0]?.src || "/placeholder.svg"}
+            alt={product.images?.[0]?.alt || product.name}
             fill
             style={{ objectFit: "cover" }}
             className="rounded-lg shadow-lg"

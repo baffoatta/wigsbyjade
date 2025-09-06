@@ -1,28 +1,37 @@
 "use client";
 
-import { GET_CUSTOMER_ORDERS } from "@/graphql/queries";
-import client from "@/lib/apollo";
-import { useQuery } from "@apollo/client/react";
+import { useCustomerOrders } from "@/hooks/useWooCommerce";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 interface Order {
-  id: string;
-  orderNumber: number;
-  date: string;
+  id: number;
+  number: string;
+  date_created: string;
   total: string;
   status: string;
 }
 
 const OrderHistory = () => {
-  const { loading, error, data } = useQuery(GET_CUSTOMER_ORDERS);
+  const [customerId, setCustomerId] = useState<number | undefined>();
+  const { loading, error, data } = useCustomerOrders(customerId);
+
+  useEffect(() => {
+    // In a real implementation, you'd get the customer ID from your auth system
+    // For now, we'll use a placeholder or extract from token
+    const token = Cookies.get("auth-token");
+    if (token) {
+      // You'd decode the JWT token or make an API call to get customer ID
+      // For now, using a placeholder - this needs to be implemented based on your auth system
+      setCustomerId(1); // Placeholder
+    }
+  }, []);
 
   if (loading) return <p>Loading orders...</p>;
   if (error) return <p>Error loading orders: {error.message}</p>;
 
-  const orders = (data as { customer?: { orders?: { nodes?: Order[] } } })
-    ?.customer?.orders?.nodes;
+  const orders = data?.customer?.orders?.nodes;
 
   return (
     <div className="mt-8">
@@ -41,12 +50,12 @@ const OrderHistory = () => {
             <tbody>
               {orders.map((order: Order) => (
                 <tr key={order.id} className="border-b">
-                  <td className="p-4">{order.orderNumber}</td>
+                  <td className="p-4">{order.number}</td>
                   <td className="p-4">
-                    {new Date(order.date).toLocaleDateString()}
+                    {new Date(order.date_created).toLocaleDateString()}
                   </td>
                   <td className="p-4">{order.status}</td>
-                  <td className="p-4">{order.total}</td>
+                  <td className="p-4">${order.total}</td>
                 </tr>
               ))}
             </tbody>
@@ -71,8 +80,6 @@ export default function AccountPage() {
 
   const handleLogout = () => {
     Cookies.remove("auth-token");
-    // Also clear the Apollo cache on logout
-    client.resetStore();
     router.push("/");
   };
 

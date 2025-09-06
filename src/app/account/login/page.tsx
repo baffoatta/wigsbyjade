@@ -1,7 +1,6 @@
 "use client";
 
-import { LOGIN_MUTATION } from "@/graphql/queries";
-import { useMutation } from "@apollo/client/react";
+import { useLoginUser } from "@/hooks/useWooCommerce";
 import Cookies from "js-cookie";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -12,12 +11,16 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
+  const [login, { loading }] = useLoginUser();
 
-  const [login, { loading }] = useMutation(LOGIN_MUTATION, {
-    onCompleted: (data) => {
-      const loginData = data as { login: { authToken: string } };
-      if (loginData.login.authToken) {
-        Cookies.set("auth-token", loginData.login.authToken, {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    
+    try {
+      const result = await login({ username, password });
+      if (result.data.login.authToken) {
+        Cookies.set("auth-token", result.data.login.authToken, {
           expires: 7,
           secure: true,
         });
@@ -25,16 +28,9 @@ export default function LoginPage() {
       } else {
         setError("Login failed. Please check your credentials.");
       }
-    },
-    onError: (error) => {
-      setError(error.message);
-    },
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    login({ variables: { username, password } });
+    } catch {
+      setError("Login failed. Please check your credentials.");
+    }
   };
 
   return (

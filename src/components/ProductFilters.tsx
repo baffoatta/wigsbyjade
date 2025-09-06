@@ -1,26 +1,24 @@
 "use client";
 
-import { GET_CATEGORIES } from "@/graphql/queries";
-import { useQuery } from "@apollo/client/react";
+import { useCategories } from "@/hooks/useWooCommerce";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
 interface Category {
-  id: string;
+  id: number;
   name: string;
   slug: string;
 }
 
 const ProductFilters = () => {
-  const { loading, error, data } = useQuery(GET_CATEGORIES);
+  const { loading, error, data } = useCategories();
   const searchParams = useSearchParams();
   const currentCategory = searchParams.get("category");
 
   if (loading) return <p>Loading filters...</p>;
   if (error) return <p>Error loading filters.</p>;
 
-  const categories = (data as { productCategories?: { nodes?: Category[] } })
-    ?.productCategories?.nodes;
+  const categories = data?.productCategories?.nodes;
 
   return (
     <aside className="w-full md:w-1/4 lg:w-1/5 p-4">

@@ -1,6 +1,5 @@
 import ProductCard from "@/components/ProductCard";
-import { PRODUCT_SEARCH_QUERY } from "@/graphql/queries";
-import client from "@/lib/apollo";
+import { wcAPI } from "@/lib/woocommerce";
 import { Suspense } from "react";
 
 interface SearchPageProps {
@@ -9,30 +8,12 @@ interface SearchPageProps {
   }>;
 }
 
-interface Product {
-  id: string;
-  name: string;
-  slug: string;
-  image: {
-    sourceUrl: string;
-    altText: string;
-  } | null;
-}
-
-interface SearchData {
-  products: {
-    nodes: Product[];
-  };
-}
 
 async function getSearchResults(term: string) {
   if (!term) return [];
   try {
-    const { data } = await client.query<SearchData>({
-      query: PRODUCT_SEARCH_QUERY,
-      variables: { search: term },
-    });
-    return data?.products?.nodes || [];
+    const products = await wcAPI.searchProducts(term);
+    return products || [];
   } catch (error) {
     console.error("Error searching products:", error);
     return [];
