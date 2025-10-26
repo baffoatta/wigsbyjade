@@ -34,19 +34,30 @@ export default function WishlistPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
           {items.map((item) => {
+            // Convert wishlist item to ProductCard format
             const productForCard = {
-              id: item.id,
+              id: parseInt(item.id),
               name: item.name,
               slug: item.slug,
               price: item.price,
-              image: item.image
-                ? {
-                    sourceUrl: item.image,
-                    altText: item.name,
-                  }
-                : null,
+              images: item.image
+                ? [
+                    {
+                      src: item.image,
+                      alt: item.name,
+                      thumbnail: item.image,
+                    },
+                  ]
+                : [],
             };
-            return <ProductCard key={item.id} product={productForCard} />;
+            return (
+              <ProductCard
+                key={item.id}
+                product={productForCard}
+                showQuickView={false}
+                showWishlist={true}
+              />
+            );
           })}
         </div>
       )}

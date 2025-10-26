@@ -4,15 +4,20 @@ import WooCommerceRestApi from "@woocommerce/woocommerce-rest-api";
 // Note: For server-side rendering, we can use the consumer secret safely
 // For client-side operations, you might want to use a JWT token or different authentication method
 const consumerKey = process.env.NEXT_PUBLIC_WC_CONSUMER_KEY || "";
-const consumerSecret = process.env.WC_CONSUMER_SECRET || process.env.NEXT_PUBLIC_WC_CONSUMER_SECRET || "";
+const consumerSecret =
+  process.env.WC_CONSUMER_SECRET ||
+  process.env.NEXT_PUBLIC_WC_CONSUMER_SECRET ||
+  "";
 
 // Debug logging (remove in production)
 console.log("WooCommerce API Config:", {
   url: "https://bcms.wigsbyjade.com",
   consumerKey: consumerKey ? `${consumerKey.substring(0, 10)}...` : "MISSING",
-  consumerSecret: consumerSecret ? `${consumerSecret.substring(0, 10)}...` : "MISSING",
+  consumerSecret: consumerSecret
+    ? `${consumerSecret.substring(0, 10)}...`
+    : "MISSING",
   hasKey: !!consumerKey,
-  hasSecret: !!consumerSecret
+  hasSecret: !!consumerSecret,
 });
 
 const WooCommerce = new WooCommerceRestApi({
@@ -21,7 +26,7 @@ const WooCommerce = new WooCommerceRestApi({
   consumerSecret,
   version: "wc/v3",
   queryStringAuth: true, // Use query string auth for better compatibility
-  timeout: 30000 // 30 second timeout
+  timeout: 30000, // 30 second timeout
 });
 
 export default WooCommerce;
@@ -248,39 +253,53 @@ export interface WCCustomer {
 }
 
 // Alternative direct HTTP approach for server-side calls
-async function makeWCRequest(endpoint: string, params?: Record<string, string | number>) {
+async function makeWCRequest(
+  endpoint: string,
+  params?: Record<string, string | number>
+) {
   const baseUrl = "https://bcms.wigsbyjade.com/wp-json/wc/v3";
   const queryParams = new URLSearchParams({
     consumer_key: consumerKey,
     consumer_secret: consumerSecret,
-    ...params
+    ...params,
   });
-  
+
   const url = `${baseUrl}/${endpoint}?${queryParams}`;
-  console.log("Making direct WC request to:", url.replace(consumerSecret, "***"));
-  
+  console.log(
+    "Making direct WC request to:",
+    url.replace(consumerSecret, "***")
+  );
+
   const response = await fetch(url);
-  console.log("Direct WC response status:", response.status, response.statusText);
-  
+  console.log(
+    "Direct WC response status:",
+    response.status,
+    response.statusText
+  );
+
   if (!response.ok) {
     const errorText = await response.text();
     console.error("WC API Error Response:", errorText);
-    throw new Error(`WooCommerce API Error: ${response.status} ${response.statusText}`);
+    throw new Error(
+      `WooCommerce API Error: ${response.status} ${response.statusText}`
+    );
   }
-  
+
   return response.json();
 }
 
 // Helper functions for API calls
 export const wcAPI = {
   // Products - using direct HTTP calls for better server-side compatibility
-  async getProducts(params?: Record<string, string | number>): Promise<WCProduct[]> {
+  async getProducts(
+    params?: Record<string, string | number>
+  ): Promise<WCProduct[]> {
     try {
       console.log("Fetching products with params:", params);
       const data = await makeWCRequest("products", params);
       console.log("Products fetched successfully, count:", data.length);
       return data;
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error fetching products:", error);
       throw error;
     }
@@ -307,7 +326,9 @@ export const wcAPI = {
   },
 
   // Categories
-  async getCategories(params?: Record<string, string | number>): Promise<WCCategory[]> {
+  async getCategories(
+    params?: Record<string, string | number>
+  ): Promise<WCCategory[]> {
     try {
       const data = await makeWCRequest("products/categories", params);
       return data;
@@ -318,7 +339,9 @@ export const wcAPI = {
   },
 
   // Orders (requires authentication)
-  async getOrders(params?: Record<string, string | number>): Promise<WCOrder[]> {
+  async getOrders(
+    params?: Record<string, string | number>
+  ): Promise<WCOrder[]> {
     try {
       const response = await WooCommerce.get("orders", params);
       return response.data;
@@ -330,7 +353,9 @@ export const wcAPI = {
 
   async getCustomerOrders(customerId: number): Promise<WCOrder[]> {
     try {
-      const response = await WooCommerce.get("orders", { customer: customerId });
+      const response = await WooCommerce.get("orders", {
+        customer: customerId,
+      });
       return response.data;
     } catch (error) {
       console.error("Error fetching customer orders:", error);
@@ -368,5 +393,5 @@ export const wcAPI = {
       console.error("Error creating customer:", error);
       throw error;
     }
-  }
+  },
 };

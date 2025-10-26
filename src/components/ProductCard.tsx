@@ -1,62 +1,137 @@
-import Image from 'next/image';
-import Link from 'next/link';
-import AddToWishlistButton from './AddToWishlistButton';
-import PriceDisplay from './PriceDisplay';
+"use client";
 
-interface Product {
-  id: number | string;
+import Link from "next/link";
+import React, { useState } from "react";
+import AddToWishlistButton from "./AddToWishlistButton";
+import PriceDisplay from "./PriceDisplay";
+
+// Flexible product interface for ProductCard
+interface ProductCardProduct {
+  id: number;
   name: string;
   slug: string;
   price?: string;
   images?: Array<{
     src: string;
-    alt: string;
+    alt?: string;
+    thumbnail?: string;
   }>;
-  image?: {
-    sourceUrl: string;
-    altText: string;
-  } | null;
 }
 
 interface ProductCardProps {
-  product: Product;
+  product: ProductCardProduct;
+  onQuickView?: (productId: number) => void;
+  isDesktop?: boolean;
+  showQuickView?: boolean;
+  showWishlist?: boolean;
+  className?: string;
 }
 
-const ProductCard = ({ product }: ProductCardProps) => {
-  const placeholderImage = '/placeholder.svg';
+const ProductCard: React.FC<ProductCardProps> = ({
+  product,
+  onQuickView,
+  isDesktop = false,
+  showQuickView = true,
+  showWishlist = true,
+  className = "",
+}) => {
+  const [imageError, setImageError] = useState(false);
+  const [hoverImageError, setHoverImageError] = useState(false);
 
-  // Handle both old GraphQL format and new WooCommerce format
-  const imageUrl = product.images?.[0]?.src || product.image?.sourceUrl;
-  const imageAlt = product.images?.[0]?.alt || product.image?.altText || product.name;
+  const handleQuickView = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onQuickView) {
+      onQuickView(product.id);
+    }
+  };
 
+  const mainImage = product.images?.[0];
+  const hoverImage = product.images?.[1] || product.images?.[0];
+
+  // Use thumbnail for faster loading if available
+  const mainImageSrc = mainImage?.thumbnail || mainImage?.src;
+  const hoverImageSrc = hoverImage?.thumbnail || hoverImage?.src;
+
+  // Prepare product data for wishlist
   const productForWishlist = {
     id: product.id.toString(),
     name: product.name,
     slug: product.slug,
-    price: product.price || '0',
-    image: imageUrl || null,
+    price: product.price || "0",
+    image: mainImageSrc || null,
   };
 
   return (
-    <Link href={`/products/${product.slug}`} className="group relative">
-      <div className="bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-300 ease-in-out group-hover:scale-105">
-        <div className="relative w-full aspect-square">
-          <Image
-            src={imageUrl || placeholderImage}
-            alt={imageAlt}
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-            style={{ objectFit: 'cover' }}
-            className="transition-opacity duration-300 group-hover:opacity-90"
-          />
-          <AddToWishlistButton product={productForWishlist} />
+    <div className={`group relative bg-white ${className}`}>
+      <Link href={`/products/${product.slug}`} className="block">
+        <div className="relative aspect-square overflow-hidden rounded-lg mb-4 bg-gray-100">
+          {/* Main Image */}
+          {mainImageSrc && !imageError ? (
+            <div
+              role="img"
+              aria-label={mainImage?.alt || product.name}
+              className={`absolute inset-0 w-full h-full bg-center bg-cover transition-all duration-500 ease-in-out ${
+                hoverImageSrc &&
+                hoverImageSrc !== mainImageSrc &&
+                !hoverImageError
+                  ? "group-hover:opacity-0"
+                  : ""
+              }`}
+              style={{ backgroundImage: `url(${mainImageSrc})` }}
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex flex-col items-center justify-center">
+              <div className="w-16 h-16 bg-gray-300 rounded-lg mb-2"></div>
+              <span className="text-gray-400 text-xs text-center px-2">
+                {product.name.length > 30
+                  ? `${product.name.substring(0, 30)}...`
+                  : product.name}
+              </span>
+            </div>
+          )}
+
+          {/* Hover Image - Only show if different from main image */}
+          {hoverImageSrc && hoverImageSrc !== mainImageSrc && (
+            <div
+              className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-in-out pointer-events-none"
+              aria-hidden="true"
+              style={{
+                backgroundImage: `url(${hoverImageSrc})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }}
+            />
+          )}
+
+          {/* Wishlist Button */}
+          {showWishlist && (
+            <div className="absolute top-2 right-2 z-20">
+              <AddToWishlistButton product={productForWishlist} />
+            </div>
+          )}
+
+          {/* Quick View Button Overlay - Desktop only */}
+          {isDesktop && showQuickView && onQuickView && (
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 pointer-events-none transition-colors duration-300 ease-in-out flex items-center justify-center">
+              <button
+                onClick={handleQuickView}
+                className="pointer-events-auto bg-black text-white px-6 py-3 text-sm font-medium rounded-md opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 ease-in-out hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+              >
+                Quick view
+              </button>
+            </div>
+          )}
         </div>
-        <div className="p-4">
-          <h3 className="text-lg font-semibold text-gray-800 truncate">{product.name}</h3>
+
+        <div className="space-y-2">
+          <h3 className="text-sm font-medium text-gray-900 leading-tight">
+            {product.name}
+          </h3>
           <PriceDisplay priceString={product.price} />
         </div>
-      </div>
-    </Link>
+      </Link>
+    </div>
   );
 };
 

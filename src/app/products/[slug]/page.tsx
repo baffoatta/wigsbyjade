@@ -1,7 +1,7 @@
-import PriceDisplay from "@/components/PriceDisplay";
-import ProductActions from "@/components/ProductActions";
-import { wcAPI } from "@/lib/woocommerce";
-import Image from "next/image";
+import { notFound } from "next/navigation";
+import { transformWooCommerceProduct } from "../../../lib/transformers/productTransformer";
+import { wcAPI } from "../../../lib/woocommerce";
+import ProductPageClient from "./ProductPageClient";
 
 interface ProductPageProps {
   params: Promise<{
@@ -9,61 +9,48 @@ interface ProductPageProps {
   }>;
 }
 
+export default async function ProductPageRoute({ params }: ProductPageProps) {
+  const { slug } = await params;
 
-async function getProduct(slug: string) {
-  try {
-    const product = await wcAPI.getProductBySlug(slug);
-    return product;
-  } catch (error) {
-    console.error("Error fetching product:", error);
-    return null;
+  // Fetch product from WooCommerce
+  const wooProduct = await wcAPI.getProductBySlug(slug);
+
+  if (!wooProduct) {
+    notFound();
   }
+
+  // Transform WooCommerce product to internal format
+  const product = transformWooCommerceProduct(wooProduct);
+
+  return <ProductPageClient product={product} />;
 }
 
-export default async function ProductPage({ params }: ProductPageProps) {
+// Generate metadata for SEO
+export async function generateMetadata({ params }: ProductPageProps) {
   const { slug } = await params;
-  const product = await getProduct(slug);
 
-  if (!product) {
-    return (
-      <div className="container mx-auto px-4 py-8">Product not found.</div>
-    );
+  // Fetch product from WooCommerce
+  const wooProduct = await wcAPI.getProductBySlug(slug);
+
+  if (!wooProduct) {
+    return {
+      title: "Product Not Found",
+    };
   }
 
-  const productForCart = {
-    id: product.id.toString(),
-    name: product.name,
-    price: product.price,
-    slug: product.slug,
-    image: product.images?.[0]?.src || null,
-  };
+  // Transform WooCommerce product to internal format
+  const product = transformWooCommerceProduct(wooProduct);
 
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="relative aspect-square">
-          <Image
-            src={product.images?.[0]?.src || "/placeholder.svg"}
-            alt={product.images?.[0]?.alt || product.name}
-            fill
-            sizes="(max-width: 768px) 100vw, 50vw"
-            style={{ objectFit: "cover" }}
-            className="rounded-lg shadow-lg"
-          />
-        </div>
-        <div>
-          <h1 className="text-4xl font-bold mb-2">{product.name}</h1>
-          <PriceDisplay
-            priceString={product.price}
-            className="text-2xl font-semibold text-pink-500 mb-4"
-          />
-          <div
-            className="text-gray-700 mb-6 prose"
-            dangerouslySetInnerHTML={{ __html: product.description }}
-          />
-          <ProductActions product={productForCart} />
-        </div>
-      </div>
-    </div>
-  );
+  return {
+    title: `${product.title} | Wigs by Jade`,
+    description: product.description.content,
+    openGraph: {
+      title: product.title,
+      description: product.description.content,
+      images: product.images.map((img) => ({
+        url: img.url,
+        alt: img.alt,
+      })),
+    },
+  };
 }

@@ -1,0 +1,1 @@
+export { transformWooCommerceProduct } from "./productTransformer";
