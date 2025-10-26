@@ -112,7 +112,7 @@ const Modal: React.FC<ModalProps> = ({
       aria-labelledby={title ? "modal-title" : undefined}
     >
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity duration-300" />
+      <div className="absolute inset-0 bg-white/70 transition-opacity duration-300" />
 
       {/* Modal Content */}
       <div
