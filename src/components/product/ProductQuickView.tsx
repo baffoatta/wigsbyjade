@@ -25,7 +25,7 @@ const ProductQuickView: React.FC<ProductQuickViewProps> = ({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} maxWidth="6xl" className="p-0">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-0 min-h-[600px] max-h-[80vh]">
+      <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-0 min-h-[700px] max-h-[85vh]">
         {/* Left Side - Image Gallery */}
         <div className="p-6 lg:p-8 lg:sticky lg:top-0 self-start">
           <ProductImageGallery images={product.images} />

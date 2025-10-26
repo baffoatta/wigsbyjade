@@ -65,7 +65,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
   return (
     <div className={`group relative bg-white ${className}`}>
       <Link href={`/products/${product.slug}`} className="block">
-        <div className="relative aspect-square overflow-hidden rounded-lg mb-4 bg-gray-100">
+        <div className="relative aspect-[3/4] overflow-hidden rounded-lg mb-4 bg-gray-100">
           {/* Main Image */}
           {mainImageSrc && !imageError ? (
             <div

@@ -117,7 +117,7 @@ const Modal: React.FC<ModalProps> = ({
       {/* Modal Content */}
       <div
         ref={modalRef}
-        className={`relative w-full ${maxWidthClasses[maxWidth]} max-h-[90vh] bg-white rounded-lg shadow-xl transform transition-all duration-300 ${className}`}
+        className={`relative w-full ${maxWidthClasses[maxWidth]} max-h-[92vh] bg-white rounded-lg shadow-xl transform transition-all duration-300 ${className}`}
         role="document"
       >
         {/* Header */}

@@ -58,11 +58,57 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
   const currentImage = images[activeImageIndex];
 
   return (
-    <div className={`space-y-4 ${className}`}>
+    <div className={`lg:flex lg:items-start lg:gap-4 ${className}`}>
+      {/* Vertical thumbnails (desktop) */}
+      {images.length > 1 && (
+        <div className="hidden lg:flex lg:flex-col lg:space-y-2 lg:w-20 lg:overflow-y-auto lg:max-h-[70vh]">
+          {images.map((image, index) => (
+            <button
+              key={index}
+              onClick={() => handleThumbnailClick(index)}
+              className={`relative w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors ${
+                index === activeImageIndex
+                  ? "border-black"
+                  : "border-gray-200 hover:border-gray-400"
+              }`}
+              aria-label={`View image ${index + 1}`}
+            >
+              {image.url ? (
+                <Image
+                  src={image.url}
+                  alt={image.alt}
+                  width={80}
+                  height={80}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <PlaceholderImage
+                  width={80}
+                  height={80}
+                  alt={image.alt}
+                  className="w-full h-full object-cover"
+                />
+              )}
+              {image.isVideo && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                  <svg
+                    className="w-4 h-4 text-white"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                </div>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Main Image */}
       <div
         ref={galleryRef}
-        className="relative aspect-square overflow-hidden rounded-lg bg-gray-100 cursor-zoom-in"
+        className="relative aspect-square lg:aspect-auto overflow-hidden rounded-lg bg-gray-100 cursor-zoom-in w-full lg:flex-1 lg:h-[72vh] lg:max-h-[75vh]"
         onClick={handleImageZoom}
         tabIndex={0}
         role="img"
@@ -90,7 +136,7 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
 
         {/* Video Play Icon */}
         {currentImage?.isVideo && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20">
+          <div className="absolute inset-0 flex items-center justify-center bg-black/20">
             <div className="bg-white rounded-full p-4 shadow-lg">
               <svg
                 className="w-8 h-8 text-black"
@@ -105,15 +151,15 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
 
         {/* Zoom Indicator */}
         {isZoomed && (
-          <div className="absolute top-4 right-4 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-sm">
+          <div className="absolute top-4 right-4 bg-black/50 text-white px-2 py-1 rounded text-sm">
             Click to zoom out
           </div>
         )}
       </div>
 
-      {/* Thumbnail Gallery */}
+      {/* Horizontal thumbnails (mobile) */}
       {images.length > 1 && (
-        <div className="flex space-x-2 overflow-x-auto pb-2">
+        <div className="mt-2 flex lg:hidden space-x-2 overflow-x-auto pb-2">
           {images.map((image, index) => (
             <button
               key={index}
@@ -141,10 +187,8 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
                   className="w-full h-full object-cover"
                 />
               )}
-
-              {/* Video indicator on thumbnail */}
               {image.isVideo && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50">
                   <svg
                     className="w-4 h-4 text-white"
                     fill="currentColor"
@@ -161,7 +205,7 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
 
       {/* Image Counter */}
       {images.length > 1 && (
-        <div className="text-center text-sm text-gray-600">
+        <div className="lg:hidden text-center text-sm text-gray-600 mt-1">
           {activeImageIndex + 1} of {images.length}
         </div>
       )}
