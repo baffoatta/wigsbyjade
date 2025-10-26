@@ -46,6 +46,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             src={product.images?.[0]?.src || "/placeholder.svg"}
             alt={product.images?.[0]?.alt || product.name}
             fill
+            sizes="(max-width: 768px) 100vw, 50vw"
             style={{ objectFit: "cover" }}
             className="rounded-lg shadow-lg"
           />

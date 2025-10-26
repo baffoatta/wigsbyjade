@@ -1,5 +1,4 @@
-import Footer from "@/components/Footer";
-import Header from "@/components/Header";
+import Layout from "@/components/layout/Layout";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
@@ -22,11 +21,7 @@ export default function RootLayout({
         className={`${inter.className} bg-gray-50 text-gray-800`}
         suppressHydrationWarning={true}
       >
-        <div className="flex flex-col min-h-screen">
-          <Header />
-          <main className="flex-grow">{children}</main>
-          <Footer />
-        </div>
+        <Layout>{children}</Layout>
       </body>
     </html>
   );

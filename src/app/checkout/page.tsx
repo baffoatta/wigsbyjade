@@ -1,6 +1,6 @@
 "use client";
 
-import CheckoutForm from "@/components/CheckoutForm";
+import CheckoutForm from "@/components/checkout/CheckoutForm";
 import stripePromise from "@/lib/stripe";
 import { useCartStore } from "@/store/cart";
 import { useCurrencyStore } from "@/store/currency";
